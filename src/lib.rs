@@ -8,6 +8,7 @@ use bevy_ecs::{
     name::Name,
     observer::On,
     query::With,
+    relationship::RelationshipTarget as _,
     system::{Commands, In, IntoSystem, Query, SystemId},
     template::{FnTemplate, FromTemplate, TemplateContext, template},
 };
@@ -335,15 +336,41 @@ impl MainWindow {
                     width value_expr(|
                         In(this): In<Entity>,
                         this_query: Query<(&Root, &Children)>,
-                        confirm_popup_layout: Query<&Properties, With<ParamId!(confirm_popup_layout)>>,
+                        root_properties: Query<&Properties>,
+                        confirm_popup_layout_properties: Query<&Properties, With<ParamId!(confirm_popup_layout)>>,
                         preferred_width: Query<&Value<LogicalLength>, With<ParamId!(preferred_width)>>,
                         width: Query<&Value<LogicalLength>, With<ParamId!(width)>>,
                     | {
-                        // TODO
-                        let _ = (this, this_query, confirm_popup_layout, preferred_width, width);
+                        let Ok((root, children)) = this_query.get(this) else {
+                            return LogicalLength::default();
+                        };
 
-                        LogicalLength::default()
-                        // min(confirm_popup_layout.preferred-width, root.width - 80px);
+                        let Ok(root_properties) = root_properties.get(root.0) else {
+                            return LogicalLength::default();
+                        };
+
+                        let Some(confirm_popup_layout_properties) = children
+                            .iter()
+                            .find_map(|child| confirm_popup_layout_properties.get(child).ok())
+                        else {
+                            return LogicalLength::default();
+                        };
+
+                        let Some(confirm_popup_layout_preferred_width) = confirm_popup_layout_properties
+                            .iter()
+                            .find_map(|prop| preferred_width.get(prop).ok())
+                        else {
+                            return LogicalLength::default();
+                        };
+
+                        let Some(root_width) = root_properties
+                            .iter()
+                            .find_map(|prop| width.get(prop).ok())
+                        else {
+                            return LogicalLength::default();
+                        };
+
+                        confirm_popup_layout_preferred_width.0.min(root_width.0 - LogicalLength::new(80.))
                     }),
                 ]
             ]
