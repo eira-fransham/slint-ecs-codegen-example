@@ -75,94 +75,6 @@ where
     })
 }
 
-// --------------------------------------------------
-// Core component type markers
-// --------------------------------------------------
-
-#[derive(SceneComponent, Clone, Default)]
-pub struct WindowItem;
-
-impl WindowItem {
-    fn scene() -> impl Scene {
-        bsn! {
-            Properties [
-                #Width Value::<LogicalLength>,
-                #Height Value::<LogicalLength>,
-                #AlwaysOnTop Value::<bool>,
-                #FullScreen Value::<bool>,
-                #Minimized Value::<bool>,
-                #Maximized Value::<bool>,
-                #Background Value::<Brush>,
-                #Color Binding(#Background),
-                #DefaultFontFamily Value::<SharedString>,
-                #DefaultFontSize Value::<LogicalLength>,
-                #DefaultFontWeight Value::<i32>,
-                // `Image` isn't `Send` + `Sync`
-                // #Icon Value::<Image>,
-                #NoFrame Value::<bool>,
-                #ResizeBorderWidth Value::<LogicalLength>,
-                #Title Value::<SharedString>("Slint Window"),
-                #SafeAreaInsets Value::<LogicalEdges>,
-                #VirtualKeyboardPosition Value::<Point>,
-                #VirtualKeyboardSize Value::<Size>,
-            ]
-        }
-    }
-}
-
-#[derive(SceneComponent, Clone, Default)]
-pub struct Window;
-
-impl Window {
-    fn scene() -> impl Scene {
-        bsn! {
-            @WindowItem
-            Children [
-                @MenuBar
-            ]
-        }
-    }
-}
-
-#[derive(SceneComponent, Clone, Default)]
-pub struct MenuBar;
-
-impl MenuBar {
-    fn scene() -> impl Scene {
-        bsn! {
-            Properties [
-                #Visible Value::<bool>(true),
-                Children [
-                    @Menu
-                ]
-            ]
-        }
-    }
-}
-
-#[derive(SceneComponent, Clone, Default)]
-pub struct Menu;
-
-impl Menu {
-    fn scene() -> impl Scene {
-        bsn! {
-            Properties [
-                #Title Value::<SharedString>,
-                #Enabled Value::<bool>,
-                // `Image` isn't `Send` + `Sync`
-                // #Icon Value::<Image>,
-            ]
-        }
-    }
-}
-
-#[derive(SceneComponent, Clone, Default)]
-pub struct PopupWindow;
-
-impl PopupWindow {
-    pub fn scene() -> impl Scene {}
-}
-
 #[derive(Component, Clone, Copy, Default)]
 pub struct ParamName<const HASH: u128>;
 
@@ -199,6 +111,135 @@ macro_rules! ParamName {
     ($name:tt) => {
         ParamName::<{ quickhash(stringify!($name)) }>
     };
+}
+
+// --------------------------------------------------
+// Core component type markers
+// --------------------------------------------------
+
+#[derive(SceneComponent, Clone, Default)]
+pub struct WindowItem;
+
+impl WindowItem {
+    fn scene() -> impl Scene {
+        let width = param_name!(width);
+        let height = param_name!(height);
+        let always_on_top = param_name!(always_on_top);
+        let full_screen = param_name!(full_screen);
+        let minimized = param_name!(minimized);
+        let maximized = param_name!(maximized);
+        let background = param_name!(background);
+        let color = param_name!(color);
+        let default_font_family = param_name!(default_font_family);
+        let default_font_size = param_name!(default_font_size);
+        let default_font_weight = param_name!(default_font_weight);
+        // `Image` isn't `Send` + `Sync`
+        // #Icon Value::<Image>,
+        let no_frame = param_name!(no_frame);
+        let resize_border_width = param_name!(resize_border_width);
+        let title = param_name!(title);
+        let safe_area_insets = param_name!(safe_area_insets);
+        let virtual_keyboard_position = param_name!(virtual_keyboard_position);
+        let virtual_keyboard_size = param_name!(virtual_keyboard_size);
+
+        bsn! {
+            Properties [
+                width Value::<LogicalLength>,
+                height Value::<LogicalLength>,
+                always_on_top Value::<bool>,
+                full_screen Value::<bool>,
+                minimized Value::<bool>,
+                maximized Value::<bool>,
+                background Value::<Brush>,
+                color /* TODO: binding to `background` */,
+                default_font_family Value::<SharedString>,
+                default_font_size Value::<LogicalLength>,
+                default_font_weight Value::<i32>,
+                // `Image` isn't `Send` + `Sync`
+                // #Icon Value::<Image>,
+                no_frame Value::<bool>,
+                resize_border_width Value::<LogicalLength>,
+                title Value::<SharedString>("Slint Window"),
+                safe_area_insets Value::<LogicalEdges>,
+                virtual_keyboard_position Value::<Point>,
+                virtual_keyboard_size Value::<Size>,
+            ]
+        }
+    }
+}
+
+#[derive(SceneComponent, Clone, Default)]
+pub struct Window;
+
+impl Window {
+    fn scene() -> impl Scene {
+        bsn! {
+            @WindowItem
+            Children [
+                @MenuBar
+            ]
+        }
+    }
+}
+
+#[derive(SceneComponent, Clone, Default)]
+pub struct MenuBar;
+
+impl MenuBar {
+    fn scene() -> impl Scene {
+        let visible = param_name!(visible);
+
+        bsn! {
+            Properties [
+                visible Value::<bool>(true),
+                Children [
+                    @Menu
+                ]
+            ]
+        }
+    }
+}
+
+#[derive(SceneComponent, Clone, Default)]
+pub struct Menu;
+
+impl Menu {
+    fn scene() -> impl Scene {
+        let title = param_name!(title);
+        let enabled = param_name!(enabled);
+
+        bsn! {
+            Properties [
+                title Value::<SharedString>,
+                enabled Value::<bool>,
+                // `Image` isn't `Send` + `Sync`
+                // #Icon Value::<Image>,
+            ]
+        }
+    }
+}
+
+#[derive(SceneComponent, Clone, Default)]
+pub struct PopupWindow;
+
+impl PopupWindow {
+    pub fn scene() -> impl Scene {
+        let width = param_name!(width);
+        let height = param_name!(height);
+        let close_on_click = param_name!(close_on_click);
+        // let close_policy = param_name!(close_policy);
+        let is_open = param_name!(is_open);
+
+        bsn! {
+            Properties [
+                width Value::<LogicalLength>,
+                height Value::<LogicalLength>,
+                close_on_click Value::<bool>,
+                // close_policy,
+                is_open Value::<bool>,
+            ]
+        }
+    }
 }
 
 #[derive(Component, Clone, Default)]
@@ -255,6 +296,8 @@ pub fn main_window() -> impl Scene {
     let y = param_name!(y);
     let width = param_name!(width);
 
+    let confirm_popup = param_name!(confirm_popup);
+
     bsn! {
         @Window
         Properties [
@@ -273,7 +316,7 @@ pub fn main_window() -> impl Scene {
             hide_done_items Value::<bool>(false),
         ]
         Children [
-            #ConfirmPopup
+            confirm_popup
             @PopupWindow
             // TODO: Root
             Properties [
