@@ -71,7 +71,9 @@ where
         let entity = ctx.entity.id();
         let system = system.clone();
         Ok(ValueExpr(ctx.entity.world_scope(move |world| {
-            world.register_system((move || entity).pipe(system))
+            world.register_system(
+                (move |query: Query<&PropertyOf>| query.get(entity).unwrap().0).pipe(system),
+            )
         })))
     })
 }
