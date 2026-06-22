@@ -22,7 +22,7 @@ use i_slint_core::{
 // Library code
 // --------------------------------------------------
 
-#[derive(Component)]
+#[derive(Component, FromTemplate)]
 #[relationship(relationship_target = Descendants)]
 pub struct Root(pub Entity);
 
@@ -75,8 +75,13 @@ where
     })
 }
 
+/// Separate from `Name` so we can still use `#` syntax
+/// to do referencing in `bsn!`.
 #[derive(Component, Clone, Copy, Default)]
-pub struct ParamName<const HASH: u128>;
+pub struct ParamName(pub &'static str);
+
+#[derive(Component, Clone, Copy, Default)]
+pub struct ParamId<const HASH: u128>;
 
 pub const fn quickhash(value: &str) -> u128 {
     let hasher = sha2_const_stable::Sha512::new();
@@ -92,13 +97,13 @@ pub const fn quickhash(value: &str) -> u128 {
 
 macro_rules! param_name {
     ($name:tt) => {{
-        type PName = ParamName!($name);
+        type PName = ParamId!($name);
 
         fn scene() -> impl Scene {
-            let name = stringify!($name).to_string();
+            let name = stringify!($name);
 
             bsn! {
-                Name(name)
+                ParamName(name)
                 PName
             }
         }
@@ -107,9 +112,9 @@ macro_rules! param_name {
     }};
 }
 
-macro_rules! ParamName {
+macro_rules! ParamId {
     ($name:tt) => {
-        ParamName::<{ quickhash(stringify!($name)) }>
+        ParamId::<{ quickhash(stringify!($name)) }>
     };
 }
 
@@ -299,6 +304,7 @@ pub fn main_window() -> impl Scene {
     let confirm_popup = param_name!(confirm_popup);
 
     bsn! {
+        #MainWindow
         @Window
         Properties [
             todo_model ModelElements [
@@ -318,16 +324,16 @@ pub fn main_window() -> impl Scene {
         Children [
             confirm_popup
             @PopupWindow
-            // TODO: Root
+            Root(#MainWindow)
             Properties [
                 x Value::<LogicalLength>(LogicalLength::new(40.)),
                 y Value::<LogicalLength>(LogicalLength::new(100.)),
                 width value_expr(|
                     In(this): In<Entity>,
                     this_query: Query<(&Root, &Children)>,
-                    confirm_popup_layout: Query<&Properties, With<ParamName!(confirm_popup_layout)>>,
-                    preferred_width: Query<&Value<LogicalLength>, With<ParamName!(preferred_width)>>,
-                    width: Query<&Value<LogicalLength>, With<ParamName!(width)>>,
+                    confirm_popup_layout: Query<&Properties, With<ParamId!(confirm_popup_layout)>>,
+                    preferred_width: Query<&Value<LogicalLength>, With<ParamId!(preferred_width)>>,
+                    width: Query<&Value<LogicalLength>, With<ParamId!(width)>>,
                 | {
                     // TODO
                     let _ = (this, this_query, confirm_popup_layout, preferred_width, width);
