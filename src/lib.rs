@@ -292,64 +292,69 @@ pub struct Show {
 #[derive(Event)]
 pub struct ApplySortingAndFiltering;
 
-pub fn main_window() -> impl Scene {
-    let todo_model = param_name!(todo_model);
-    let show_header = param_name!(show_header);
-    let is_sort_by_name = param_name!(is_sort_by_name);
-    let hide_done_items = param_name!(hide_done_items);
-    let x = param_name!(x);
-    let y = param_name!(y);
-    let width = param_name!(width);
+#[derive(SceneComponent, Default, Clone, Copy)]
+pub struct MainWindow;
 
-    let confirm_popup = param_name!(confirm_popup);
+impl MainWindow {
+    pub fn scene() -> impl Scene {
+        let todo_model = param_name!(todo_model);
+        let show_header = param_name!(show_header);
+        let is_sort_by_name = param_name!(is_sort_by_name);
+        let hide_done_items = param_name!(hide_done_items);
+        let x = param_name!(x);
+        let y = param_name!(y);
+        let width = param_name!(width);
 
-    bsn! {
-        #MainWindow
-        @Window
-        Properties [
-            todo_model ModelElements [
-                Value::<TodoItem>(TodoItem { title: "Implement the .slint file", checked: true }),
-                Value::<TodoItem>(TodoItem { title: "Do the Rust part", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "Make the C++ code", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "Write some JavaScript code", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "Test the application", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "Ship to customer", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "???", checked: false }),
-                Value::<TodoItem>(TodoItem { title: "Profit", checked: false }),
-            ],
-            show_header Value::<bool>(false),
-            is_sort_by_name Value::<bool>(false),
-            hide_done_items Value::<bool>(false),
-        ]
-        Children [
-            confirm_popup
-            @PopupWindow
-            Root(#MainWindow)
+        let confirm_popup = param_name!(confirm_popup);
+
+        bsn! {
+            #MainWindow
+            @Window
             Properties [
-                x Value::<LogicalLength>(LogicalLength::new(40.)),
-                y Value::<LogicalLength>(LogicalLength::new(100.)),
-                width value_expr(|
-                    In(this): In<Entity>,
-                    this_query: Query<(&Root, &Children)>,
-                    confirm_popup_layout: Query<&Properties, With<ParamId!(confirm_popup_layout)>>,
-                    preferred_width: Query<&Value<LogicalLength>, With<ParamId!(preferred_width)>>,
-                    width: Query<&Value<LogicalLength>, With<ParamId!(width)>>,
-                | {
-                    // TODO
-                    let _ = (this, this_query, confirm_popup_layout, preferred_width, width);
-
-                    LogicalLength::default()
-                    // min(confirm_popup_layout.preferred-width, root.width - 80px);
-                }),
+                todo_model ModelElements [
+                    Value::<TodoItem>(TodoItem { title: "Implement the .slint file", checked: true }),
+                    Value::<TodoItem>(TodoItem { title: "Do the Rust part", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "Make the C++ code", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "Write some JavaScript code", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "Test the application", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "Ship to customer", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "???", checked: false }),
+                    Value::<TodoItem>(TodoItem { title: "Profit", checked: false }),
+                ],
+                show_header Value::<bool>(false),
+                is_sort_by_name Value::<bool>(false),
+                hide_done_items Value::<bool>(false),
             ]
-        ]
-        on(|
-            event: On<ShowConfirmPopup>,
-            mut commands: Commands,
-            children: Query<&Children>,
-            query: Query<(Entity, &Name)>,
-        | {
-            todo!()
-        })
+            Children [
+                confirm_popup
+                @PopupWindow
+                Root(#MainWindow)
+                Properties [
+                    x Value::<LogicalLength>(LogicalLength::new(40.)),
+                    y Value::<LogicalLength>(LogicalLength::new(100.)),
+                    width value_expr(|
+                        In(this): In<Entity>,
+                        this_query: Query<(&Root, &Children)>,
+                        confirm_popup_layout: Query<&Properties, With<ParamId!(confirm_popup_layout)>>,
+                        preferred_width: Query<&Value<LogicalLength>, With<ParamId!(preferred_width)>>,
+                        width: Query<&Value<LogicalLength>, With<ParamId!(width)>>,
+                    | {
+                        // TODO
+                        let _ = (this, this_query, confirm_popup_layout, preferred_width, width);
+
+                        LogicalLength::default()
+                        // min(confirm_popup_layout.preferred-width, root.width - 80px);
+                    }),
+                ]
+            ]
+            on(|
+                event: On<ShowConfirmPopup>,
+                mut commands: Commands,
+                children: Query<&Children>,
+                query: Query<(Entity, &Name)>,
+            | {
+                todo!()
+            })
+        }
     }
 }
