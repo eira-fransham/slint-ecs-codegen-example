@@ -1,0 +1,11 @@
+[package]
+name = "slint-ecs-test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_ecs = "0.19"
+bevy_scene = "0.19"
+slint-interpreter = "1.16"
+i-slint-core = "1.16"
+sha2-const-stable = "0.1"
